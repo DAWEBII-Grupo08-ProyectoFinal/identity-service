@@ -3,8 +3,10 @@ package com.ecommerce_backend.identity_service.controller;
 import com.ecommerce_backend.identity_service.dto.response.UserNotificationInfoResponse;
 import com.ecommerce_backend.identity_service.dto.response.UserResponse;
 import com.ecommerce_backend.identity_service.entity.User;
+import com.ecommerce_backend.identity_service.exception.IdentityException;
 import com.ecommerce_backend.identity_service.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,7 +24,10 @@ public class UserController {
     @GetMapping("/me")
     public ResponseEntity<UserResponse> me(Authentication authentication) {
         User user = userRepository.findByEmail(authentication.getName())
-                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+                .orElseThrow(() -> new IdentityException(
+                        HttpStatus.NOT_FOUND,
+                        "Usuario no encontrado"
+                ));
 
         return ResponseEntity.ok(
                 new UserResponse(
@@ -40,9 +45,10 @@ public class UserController {
             @PathVariable Long userId
     ) {
         User user = userRepository.findById(userId)
-                .orElseThrow(
-                        () -> new IllegalArgumentException("Usuario no encontrado")
-                );
+                .orElseThrow(() -> new IdentityException(
+                        HttpStatus.NOT_FOUND,
+                        "Usuario no encontrado"
+                ));
 
         return ResponseEntity.ok(
                 new UserNotificationInfoResponse(
